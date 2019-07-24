@@ -22,14 +22,23 @@ from PIL import Image
 infile = sys.argv[1]
 f, e = os.path.splitext(infile)
 outfile = f + "_" + sys.argv[4] + ".png"
-startx = int(sys.argv[2])
-starty = int(sys.argv[3])
+
+# assigning these "backwards" bc of how numpy arranges images
+starty = int(sys.argv[2])
+startx = int(sys.argv[3])
 level = int(sys.argv[4])
 
 im = Image.open(infile)
+print(im.format, im.size, im.mode)
+# r, __, __, __ = im.split()
+
 # for some reason if I don't copy it, it's read-only, which is dumb
+# for now, make the output always 8-bit, to make the file small
 imarray = np.asarray(im)
-outarray = np.zeros_like(imarray)
+outarray = np.zeros_like(imarray, dtype="uint8")
+
+levelstart = imarray[startx, starty]
+print(levelstart)
 
 tocheck = set()
 checked = set()
@@ -52,7 +61,8 @@ while len(tocheck) > 0:
     south = (inds[0], inds[1] - 1)
     west = (inds[0] - 1, inds[1])
     for nbr in (north, east, south, west):
-        if nbr not in checked and max(nbr) < 1024 and min(nbr) > -1:
+        # this isn't quite correct for non-square images yet
+        if nbr not in checked and max(nbr) < im.size[0] and min(nbr) > -1:
             # check each neighbor now
             if imarray[nbr] <= level:
                 flooded.add(nbr)
@@ -61,6 +71,11 @@ while len(tocheck) > 0:
 
 if len(flooded) == 0:
     print("Nothing flooded! Choose a new start point!")
+else:
+    Ntotal = im.size[0] * im.size[1]
+    Nflooded = len(flooded)
+    pctFlooded = np.round(Nflooded / Ntotal * 100, 2)
+    print("{} points flooded ({}%)".format(Nflooded, pctFlooded))
 
 for x in flooded:
     outarray[x] = 255
