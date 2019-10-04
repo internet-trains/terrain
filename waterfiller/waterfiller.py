@@ -66,12 +66,14 @@ while len(tocheck) > 0:
     nw = (inds[0] - 1, inds[1] + 1)
     for nbr in (north, east, south, west, ne, se, sw, nw):
         # this isn't quite correct for non-square images yet
-        if nbr not in checked and max(nbr) < im.size[0] and min(nbr) > -1:
-            # check each neighbor now
-            if imarray[nbr] <= level:
-                flooded.add(nbr)
-                # non-flooded pixels block further checking
-                tocheck.add(nbr)
+        if nbr not in checked:
+            if nbr[0] < im.size[0] and nbr[0] > -1:
+                if nbr[1] < im.size[1] and nbr[1] > -1:
+                    # check each neighbor now
+                    if imarray[nbr] <= level:
+                        flooded.add(nbr)
+                        # non-flooded pixels block further checking
+                        tocheck.add(nbr)
 
 if len(flooded) == 0:
     print("Nothing flooded! Choose a new start point!")
