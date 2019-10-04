@@ -65,7 +65,7 @@ while len(tocheck) > 0:
     sw = (inds[0] - 1, inds[1] - 1)
     nw = (inds[0] - 1, inds[1] + 1)
     for nbr in (north, east, south, west, ne, se, sw, nw):
-        # this isn't quite correct for non-square images yet
+        # this should work for non-square images now
         if nbr not in checked:
             if nbr[0] < im.size[1] and nbr[0] > -1:
                 if nbr[1] < im.size[0] and nbr[1] > -1:
