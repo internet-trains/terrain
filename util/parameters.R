@@ -12,7 +12,17 @@ sts <- c(
   "PA",
   "RI",
   "DC"
-)  # states of interest -- just a big culling step
+)
+
+countries <- c(
+  "BY",
+  "EE",
+  "FI",
+  "LT",
+  "LV",
+  "PL",
+  "RU"
+)
 
 x_bound <- 4096
 y_bound <- 4096

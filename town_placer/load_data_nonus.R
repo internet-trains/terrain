@@ -6,16 +6,6 @@ options(tigris_class = "sf")
 options(tigris_use_cache = T)
 source("parameters.R")
 
-
-countries <- c(
-  "BY",
-  "EE",
-  "FI",
-  "LT",
-  "LV",
-  "PL",
-  "RU"
-)
 #BLDG
 #HTL - Hotel
 #CH - Church
