@@ -1,3 +1,4 @@
+library(tidyverse)
 set.seed(2)
 #source("load_data.R")
 source("util/compute_transformation.R")
@@ -7,21 +8,23 @@ source("util/compute_transformation.R")
 towns_per_county <- 10
 
 # for in-US
-to_map <- of_interest_cull %>% 
-  group_by(combined.GEOID) %>%
-  filter(class %in% class_types) %>%
-#  filter(indicator > 0) %>% 
-  filter(population > 0) %>%
+#to_map <- of_interest_cull %>%
+#  group_by(combined.GEOID) %>%
+#  filter(class %in% class_types) %>%
+#  filter(indicator > 0) %>%
+#  filter(population > 0) %>%
 #  top_n(towns_per_county, population) %>%
-  arrange(-population)
+#  arrange(-population)
 
 # join up with outside US
 to_map <- rbind(
-  to_map %>% st_transform(crs = 4326) %>% ungroup() %>% select(-indicator, -combined.GEOID)
-#  to_map_foreign
-) %>%
-#  filter(population > 0) %>%
+#  to_map %>% st_transform(crs = 4326) %>% ungroup() %>% select(-indicator, -combined.GEOID)
+  to_map_foreign) %>%
+  filter(class %in% class_types) %>%
+  #  filter(class == "RSTN") %>%
+  filter(population > 0) %>%# | class == "RSTN") %>%
   arrange(-population)
+#to_map <- to_map_foreign
 
 names <- to_map$name
 
@@ -91,9 +94,9 @@ function Main::Start()
             TryTown(x[i], y[i], GSTown.TOWN_SIZE_LARGE, true, names[i]);
         } else if (i < 1) {
             TryTown(x[i], y[i], GSTown.TOWN_SIZE_MEDIUM, true, names[i]);
-        } else if (i < 1) {
+        } else if (i < 23) {
             TryTown(x[i], y[i], GSTown.TOWN_SIZE_LARGE, false, names[i]);
-        } else if (i < 164) {
+        } else if (i < 193) {
             TryTown(x[i], y[i], GSTown.TOWN_SIZE_MEDIUM, false, names[i]);
         } else {
             TryTown(x[i], y[i], GSTown.TOWN_SIZE_SMALL, false, names[i]);

@@ -39,8 +39,8 @@ map_scale_y <- y_bound - 3
 class_types <- c(
   "PPL",
   "PPLA",
-  "PPLA2", 
-  "PPLA3", 
+  "PPLA2",
+  "PPLA3",
   "PPLA4",
   "PPLA5",
   "PPLC",
@@ -48,7 +48,7 @@ class_types <- c(
   "PPLG",
   "PPLL",
   "PPLR",
-  "PPLS",
+  "PPLS"
 #  "PPLX",
-  "RSTN"
+#  "RSTN"
   ) # Omit "PPLX" to exclude subdivisions

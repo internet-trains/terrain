@@ -35,7 +35,7 @@ combined <- rbind_tigris(
   })
 )
 
-of_interest <- data %>% 
+of_interest <- data %>%
   filter(level == "P") %>%
   st_as_sf(coords = c("long", "lat"), crs = st_crs(combined))
 
@@ -55,7 +55,7 @@ of_interest_cull <- of_interest %>% filter(indicator > 0)
 
 indicator_lookup <- data.frame(combined$GEOID, indicator = 1:nrow(combined))
 
-of_interest_cull <- of_interest_cull %>% 
+of_interest_cull <- of_interest_cull %>%
   left_join(indicator_lookup) %>%
   group_by(combined.GEOID) %>%
   arrange(-population) %>%

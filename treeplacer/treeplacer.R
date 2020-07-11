@@ -160,7 +160,7 @@ function Main::Start()
   paste0(joined$x-1, collapse = ','),
    "];
     local y = [",
-  paste0(joined$y-1, collapse = ','),
+  paste0(joined$y-2, collapse = ','),
    "];
     local sizes = [",
   paste0(joined$length, collapse = ','),
