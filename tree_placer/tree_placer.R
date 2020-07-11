@@ -1,4 +1,4 @@
-source("../util/load_png.R")
+source("util/load_png.R")
 
 library(data.table)
 library(dtplyr)

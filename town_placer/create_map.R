@@ -1,6 +1,6 @@
 set.seed(2)
 #source("load_data.R")
-source("../util/compute_transformation.R")
+source("util/compute_transformation.R")
 
 # Rasterization step
 # do we need to reproject or can we assume its square grid

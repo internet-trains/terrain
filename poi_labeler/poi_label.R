@@ -1,8 +1,8 @@
-source("../util/parameters.R")
+source("util/parameters.R")
 library(tidyverse)
 # TODO: handle overlapping signs
 # TODO: handle abbreviations in signs, to reduce clutter!
-data <- read_delim("../data/LT.zip", delim="\t", col_names=FALSE, col_types = cols(.default = 'c'), quote = "") %>%
+data <- read_delim("data/LT.zip", delim="\t", col_names=FALSE, col_types = cols(.default = 'c'), quote = "") %>%
   select(id = X1, name = X3, lat = X5, long = X6, level = X7, class = X8, population = X15) %>%
   mutate(lat = as.numeric(lat), long = as.numeric(long), population = as.integer(population))
 

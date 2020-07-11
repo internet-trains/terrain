@@ -1,4 +1,4 @@
-source("../util/load_png.R")
+source("util/load_png.R")
 
 # for fun, switch the order of the data
 # (controls which way the water is 'scanned' in in game)
