@@ -13,3 +13,7 @@ Given a fill origin and height and grayscale PNG, fills water on the map.
 
 Creates a gamescript that will automatically place trees according to a
 grayscale image.
+
+## PoI Labeler
+
+Drops signs programmatically based on PoI from a dataset.
