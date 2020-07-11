@@ -14,8 +14,8 @@ sts <- c(
   "DC"
 )  # states of interest -- just a big culling step
 
-x_bound <- 8192
-y_bound <- 2048
+x_bound <- 4096
+y_bound <- 4096
 
 # helper function: just goes between degrees and decimals
 to_decimal <- function(angle, minutes, seconds) {
@@ -39,5 +39,6 @@ class_types <- c(
   "PPLL",
   "PPLR",
   "PPLS",
-  "PPLX"
+#  "PPLX",
+  "RSTN"
   ) # Omit "PPLX" to exclude subdivisions

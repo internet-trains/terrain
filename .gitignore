@@ -106,3 +106,4 @@ venv.bak/
 # example data and such
 example/
 .Rproj.user
+data/

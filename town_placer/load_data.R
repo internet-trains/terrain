@@ -20,7 +20,7 @@ source("parameters.R")
 #subdivisions
 #PPLX
 
-data <- read_delim("data/US.zip", delim="\t", col_names=FALSE, col_types = cols(.default = 'c'), quote = "") %>%
+data <- read_delim("../data/US.zip", delim="\t", col_names=FALSE, col_types = cols(.default = 'c'), quote = "") %>%
   select(id = X1, name = X3, lat = X5, long = X6, level = X7, class = X8, population = X15) %>%
   mutate(lat = as.numeric(lat), long = as.numeric(long), population = as.integer(population))
 
