@@ -52,3 +52,7 @@ class_types <- c(
 #  "PPLX",
 #  "RSTN"
   ) # Omit "PPLX" to exclude subdivisions
+
+scenario_name <- "baltic"
+river_scale <- .5
+map_crs <- CRS("+init=EPSG:4326")

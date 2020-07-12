@@ -14,11 +14,8 @@ library(sf)
 library(gdalUtils)
 library(raster)
 library(fasterize)
+source("util/parameters.R")
 source("util/assemble_tiles.R")
-
-scenario_name <- "baltic"
-river_scale <- 5
-map_crs <- CRS("+init=EPSG:4326")
 
 # end user customizable code
 scenario_dir <- file.path("data", "scenarios", scenario_name)
@@ -32,18 +29,32 @@ template <- projectExtent(raster(base_file), map_crs)
 load("data/srtm.crs")
 
 # Step 1. Reproject and save the coast and base files
-gdalwarp(file.path(scenario_dir, "base.tif"), file.path(scenario_dir, "height.tif"), s_srs = srtm_crs, t_srs = map_crs)
-gdalwarp(file.path(scenario_dir, "base_coast.tif"), file.path(scenario_dir, "coast.tif"), s_srs = srtm_crs, t_srs = map_crs)
+gdalwarp(
+  file.path(scenario_dir, "base.tif"),
+  file.path(scenario_dir, "height.tif"),
+  s_srs = srtm_crs,
+  t_srs = map_crs)
+gdalwarp(
+  file.path(scenario_dir, "base_coast.tif"),
+  file.path(scenario_dir, "coast.tif"),
+  s_srs = srtm_crs,
+  t_srs = map_crs)
 
 # Step 2. Generate inland water files
-water <- list.files(file.path(scenario_dir, "water"), pattern = ".shp", full.names = T, recursive = T) %>%
+water <-
+  list.files(
+    file.path(scenario_dir, "water"),
+    pattern = ".shp",
+    full.names = T,
+    recursive = T) %>%
   map(st_read) %>%
   reduce(bind_rows) %>%
   st_set_crs(srtm_crs) %>%
   st_transform(map_crs) %>%
   st_buffer(dist = 0)
 
-cropped_water <- water %>%
+cropped_water <-
+  water %>%
   st_crop(
     template %>%
       extent() %>%
@@ -56,13 +67,25 @@ cropped_water <- water %>%
 water_map <- cropped_water %>% fasterize(template)
 writeRaster(water_map, file.path(scenario_dir, "water.tif"))
 
+rm(water)
+rm(cropped_water)
+rm(water_map)
+
 # Step 3. Generate river ways
-rivers <- list.files("data/rivers", pattern = "eurivs.shp", recursive = T, full.names = T) %>%
+rivers <-
+  list.files(
+    file.path("data", "rivers"),
+    pattern = "eurivs.shp",
+    recursive = T,
+    full.names = T) %>%
   map(st_read) %>%
   reduce(bind_rows) %>%
-  st_transform(crs = map_crs)
+  st_transform(crs = map_crs) %>%
+  filter(a_DEPTH > 1)
 
-cropped_data <- rivers %>%
+
+cropped_rivers <-
+  rivers %>%
   st_crop(
     template %>%
       extent() %>%
@@ -72,17 +95,27 @@ cropped_data <- rivers %>%
   )
 
 # expand the linestrings into rectangles
-rivers <- cropped_data %>%
-  st_buffer(dist = cropped_data$a_WIDTH * river_scale) %>%
-  st_cast()
+cropped_rivers <-
+  cropped_rivers %>%
+  #st_transform(crs("+init=EPSG:25884")) %>% # temporary hack for tweaking buffer size
+  st_buffer(dist = cropped_rivers$a_WIDTH * river_scale) %>%
+  st_cast() %>%
+  st_transform(map_crs)
 
-rivers$value <- 1
+cropped_rivers$value <- 1
 
-river_map <- fasterize(rivers, template, fun = "max", background = 0)
+river_map <- cropped_rivers %>% fasterize(template)
 
 river_map %>%
-  writeRaster(file.path(scenario_dir, "rivers.tif"))
+  writeRaster(file.path(scenario_dir, "rivers.tif"), overwrite = T)
+
+rm(rivers)
+rm(cropped_rivers)
+rm(river_map)
 
 # Step 4. Generate tree map
 
-assemble_tiles(file.path(scenario_dir, "trees"), file.path(scenario_dir, "height.tif"), file.path(scenario_dir, "trees.tif"))
+assemble_tiles(
+  file.path(scenario_dir, "trees"),
+  file.path(scenario_dir, "base.tif"),
+  file.path(scenario_dir, "trees.tif"))
