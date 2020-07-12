@@ -23,17 +23,9 @@ function Main::Save()
 // Load function
 function Main::Load() {}
 
-function Main::FillCash(company_id) {
-    if(GSCompany.GetBankBalance(company_id) < 20000000) {
-        GSCompany.ChangeBankBalance(company_id, 1800000000, GSCompany.EXPENSES_OTHER);
-    }
-}
-
 function Main::Start()
 {
     Sleep(1);
-    company_id = GSCompany.ResolveCompanyID(GSCompany.COMPANY_FIRST);
-    FillCash(company_id);
 
     local x = [",
   paste0(data$x-1, collapse = ','), # reverse these if ottd is ccw
@@ -45,11 +37,8 @@ function Main::Start()
     for(local i = 0; i < x.len(); i++) {
         local cur_tile = GSMap.GetTileIndex(x[i], y[i]);
         if(!(GSTile.IsCoastTile(cur_tile) || GSTile.IsWaterTile(cur_tile))) {
-            GSLog.Warning(i);
-            FillCash(company_id);
-            local mode = GSCompanyMode(company_id);
             GSTile.DemolishTile(cur_tile);
-            GSMarine.BuildCanal(cur_tile);
+            GSMarine.BuildRiver(cur_tile);
         }
     }
 }
