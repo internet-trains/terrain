@@ -1,5 +1,4 @@
 library(gdalUtils)
-library(rgdal)
 
 assemble_tiles <- function(tile_directory, base_filename, output_filename) {
   tile_filenames <- list.files(tile_directory, full.names=T)
