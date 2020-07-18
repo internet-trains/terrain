@@ -21,7 +21,7 @@ source("util/parameters.R")
 #PPLX
 
 read_geonames <- function(country_code) {
-  read_delim(paste0("data/", country_code, ".zip"), delim="\t", col_names=FALSE, col_types = cols(.default = 'c'), quote = "") %>%
+  read_delim(paste0("data/geonames/", country_code, ".zip"), delim="\t", col_names=FALSE, col_types = cols(.default = 'c'), quote = "") %>%
     select(id = X1, name = X3, lat = X5, long = X6, level = X7, class = X8, population = X15) %>%
     mutate(lat = as.numeric(lat), long = as.numeric(long), population = as.integer(population), dataset = country_code)
 }
