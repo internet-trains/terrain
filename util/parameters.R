@@ -15,13 +15,7 @@ sts <- c(
 )
 
 countries <- c(
-  "BY",
-  "EE",
-  "FI",
-  "LT",
-  "LV",
-  "PL",
-  "RU"
+  "JP"
 )
 
 x_bound <- 4096
@@ -48,11 +42,13 @@ class_types <- c(
   "PPLG",
   "PPLL",
   "PPLR",
-  "PPLS"
-#  "PPLX",
-#  "RSTN"
+  "PPLS",
+  "RSTN",
+  "PPLX"
   ) # Omit "PPLX" to exclude subdivisions
 
-scenario_name <- "baltic"
-river_scale <- .5
-map_crs <- CRS("+init=EPSG:4326")
+scenario_name <- "tokyo"
+river_scale <- 25
+map_crs <- sp::CRS("+init=EPSG:4326")
+map_crs <- sp::CRS("+init=EPSG:4301")
+map_crs <- sp::CRS("+proj=tmerc +lat_0=35.685036 +lon_0=139.752813")
