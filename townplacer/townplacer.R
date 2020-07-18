@@ -20,18 +20,16 @@ towns_per_county <- 10
 to_map <- rbind(
 #  to_map %>% st_transform(crs = 4326) %>% ungroup() %>% select(-indicator, -combined.GEOID)
   to_map_foreign) %>%
-  filter(class %in% class_types) %>%
-  #  filter(class == "RSTN") %>%
-  filter(population > 0) %>%# | class == "RSTN") %>%
-  arrange(-population)
+  filter(class %in% class_types)
+
 #to_map <- to_map_foreign
 
 names <- to_map$name
 
 coords <- to_map %>% st_coordinates()
 
-xvec <- coords[,1]
-yvec <- coords[,2]
+xvec <- coords[,2]
+yvec <- coords[,1]
 
 
 original <- matrix(data = c(xvec, yvec, rep(1, length(xvec))), ncol = 3)
@@ -39,8 +37,8 @@ image <- original %*% results
 
 # throw out out of bounds coords
 # switch these for ccw?
-xvec_t <- round(image[,2])
-yvec_t <- round(image[,1])
+xvec_t <- round(image[,1])
+yvec_t <- round(image[,2])
 
 to_keep <- between(xvec_t, 12, x_bound-13) & between(yvec_t, 12, y_bound-13)
 
@@ -54,21 +52,34 @@ review$y <- yvec_t
 
 review <-
   review %>%
-  group_by(name) %>%
+  group_by(name, class == "RSTN") %>%
   mutate(count = row_number()) %>%
+  filter(count == 1) %>%
   ungroup() %>%
   mutate(name = ifelse(count > 1, paste0(name, " ", as.roman(count)), name))
 
-names <- review$name
+stations <- review %>% filter(class == "RSTN") %>% select(id, name, x, y)
+towns <- review %>% filter(class != "RSTN")
+pop_towns <- towns %>% filter(population > 0)
 
+# Of these, find the ones for each train station
+data_tree <- createTree(data.frame(towns$x, towns$y))
 
-xstr <- paste0("[", paste0(xvec_t, collapse=','), "]")
-ystr <- paste0("[", paste0(yvec_t, collapse=','), "]")
-namestr <- paste0("[", paste0("\"", names, "\"", collapse=','), "]")
+selected_town_indices <- knnLookup(data_tree, newdat = data.frame(stations$x, stations$y), k = 1)
+selected_towns <- towns[selected_town_indices,] %>%
+  filter(population == 0) %>% # we are already including all the pop > 0 places
+  distinct(name, .keep_all=T)
+
+review <- bind_rows(pop_towns, selected_towns) %>% arrange(-population, class)
+
+xstr <- paste0("[", paste0(review$x, collapse=','), "]")
+ystr <- paste0("[", paste0(review$y, collapse=','), "]")
+namestr <- paste0("[", paste0("\"", review$name, "\"", collapse=','), "]")
 
 out_str <- paste0("require(\"version.nut\")
 class Main extends GSController
 {
+    company_id = 0;
     constructor()
     {
     }
@@ -77,7 +88,6 @@ class Main extends GSController
 function Main::Start()
 {
     Sleep(1); // don't have this happen during world gen, but after we've 'loaded'
-
     local x = ",
   xstr,
   ";
@@ -92,11 +102,11 @@ function Main::Start()
   "; i++) {
         if (i < 1) {
             TryTown(x[i], y[i], GSTown.TOWN_SIZE_LARGE, true, names[i]);
-        } else if (i < 1) {
+        } else if (i < 19) {
             TryTown(x[i], y[i], GSTown.TOWN_SIZE_MEDIUM, true, names[i]);
-        } else if (i < 23) {
+        } else if (i < 19) {
             TryTown(x[i], y[i], GSTown.TOWN_SIZE_LARGE, false, names[i]);
-        } else if (i < 193) {
+        } else if (i < 176) {
             TryTown(x[i], y[i], GSTown.TOWN_SIZE_MEDIUM, false, names[i]);
         } else {
             TryTown(x[i], y[i], GSTown.TOWN_SIZE_SMALL, false, names[i]);
@@ -110,7 +120,8 @@ function Main::TryTown(x, y, size, city, name) {
     local counter = 0;
 
     while(!success && counter < timeout) {
-        success = GSTown.FoundTown(GSMap.GetTileIndex(x, y), size, city, GSTown.ROAD_LAYOUT_BETTER_ROADS, name);
+        local cur_tile = GSMap.GetTileIndex(x, y);
+        success = GSTown.FoundTown(cur_tile, size, city, GSTown.ROAD_LAYOUT_BETTER_ROADS, name);
         x = x + GSBase.RandRange(3) - 1;
         y = y + GSBase.RandRange(3) - 1;
         counter += 1;
