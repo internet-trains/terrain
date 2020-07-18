@@ -1,19 +1,37 @@
-source("util/parameters.R")
 library(tidyverse)
 # TODO: handle overlapping signs
 # TODO: handle abbreviations in signs, to reduce clutter!
-data <- read_delim("data/LT.zip", delim="\t", col_names=FALSE, col_types = cols(.default = 'c'), quote = "") %>%
-  select(id = X1, name = X3, lat = X5, long = X6, level = X7, class = X8, population = X15) %>%
-  mutate(lat = as.numeric(lat), long = as.numeric(long), population = as.integer(population))
+library(sf)
+library(tigris)
+library(ggplot2)
+options(tigris_class = "sf")
+options(tigris_use_cache = T)
+source("util/parameters.R")
+source("util/compute_transformation.R")
 
-poi <- data %>%
-  filter(class == "RSTN")
+poi_classes <- c(
+  "RSTN",
+  "RSTP",
+  "TRANT"
+)
 
+read_geonames <- function(country_code) {
+  read_delim(paste0("data/geonames/", country_code, ".zip"), delim="\t", col_names=FALSE, col_types = cols(.default = 'c'), quote = "") %>%
+    select(id = X1, name = X3, lat = X5, long = X6, level = X7, class = X8, population = X15) %>%
+    mutate(lat = as.numeric(lat), long = as.numeric(long), population = as.integer(population), dataset = country_code)
+}
 
-names <- poi$name
+data <- countries %>%
+  map(read_geonames) %>%
+  reduce(bind_rows)
 
-xvec <- poi$long
-yvec <- poi$lat
+of_interest <- data %>%
+  filter(class %in% poi_classes)
+
+names <- of_interest$name
+
+xvec <- of_interest$lat
+yvec <- of_interest$long
 
 
 original <- matrix(data = c(xvec, yvec, rep(1, length(xvec))), ncol = 3)
@@ -30,7 +48,7 @@ xvec_t <- xvec_t[to_keep]
 yvec_t <- yvec_t[to_keep]
 names <- names[to_keep]
 
-review <- poi[to_keep,]
+review <- of_interest[to_keep,]
 review$x <- xvec_t
 review$y <- yvec_t
 
