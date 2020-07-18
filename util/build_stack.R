@@ -32,11 +32,13 @@ load("data/srtm.crs")
 gdalwarp(
   file.path(scenario_dir, "base.tif"),
   file.path(scenario_dir, "height.tif"),
+  tr = res(template),
   s_srs = srtm_crs,
   t_srs = map_crs)
 gdalwarp(
   file.path(scenario_dir, "base_coast.tif"),
   file.path(scenario_dir, "coast.tif"),
+  tr = res(template),
   s_srs = srtm_crs,
   t_srs = map_crs)
 
@@ -51,6 +53,7 @@ water <-
   reduce(bind_rows) %>%
   st_set_crs(srtm_crs) %>%
   st_transform(map_crs) %>%
+  st_zm() %>%
   st_buffer(dist = 0)
 
 cropped_water <-
@@ -65,7 +68,7 @@ cropped_water <-
   st_cast()
 
 water_map <- cropped_water %>% fasterize(template)
-writeRaster(water_map, file.path(scenario_dir, "water.tif"))
+writeRaster(water_map, file.path(scenario_dir, "water.tif"), overwrite = T)
 
 rm(water)
 rm(cropped_water)
@@ -73,19 +76,15 @@ rm(water_map)
 
 # Step 3. Generate river ways
 rivers <-
-  list.files(
-    file.path("data", "rivers"),
-    pattern = "eurivs.shp",
-    recursive = T,
-    full.names = T) %>%
+  file.path("data", "rivers", c("asia.gdb")) %>%
   map(st_read) %>%
   reduce(bind_rows) %>%
-  st_transform(crs = map_crs) %>%
-  filter(a_DEPTH > 1)
+  st_transform(crs = map_crs)
 
 
 cropped_rivers <-
   rivers %>%
+  filter(ORD_FLOW < 7, ORD_FLOW > 4) %>%
   st_crop(
     template %>%
       extent() %>%
@@ -95,22 +94,29 @@ cropped_rivers <-
   )
 
 # expand the linestrings into rectangles
-cropped_rivers <-
+raster_rivers <-
   cropped_rivers %>%
-  #st_transform(crs("+init=EPSG:25884")) %>% # temporary hack for tweaking buffer size
-  st_buffer(dist = cropped_rivers$a_WIDTH * river_scale) %>%
+  #  st_transform(crs("+init=EPSG:25884")) %>% # temporary hack for tweaking buffer size
+  st_buffer(
+    # dist = river_scale *
+    #   (1 + .5 * (cropped_rivers$a_WIDTH - min(cropped_rivers$a_WIDTH)) /
+    #      (max(cropped_rivers$a_WIDTH) - min(cropped_rivers$a_WIDTH))),
+    dist = 12*(8 - cropped_rivers$ORD_FLOW),
+    endCapStyle = "FLAT",
+    joinStyle = "ROUND") %>%
   st_cast() %>%
   st_transform(map_crs)
 
-cropped_rivers$value <- 1
+raster_rivers$value <- 1
 
-river_map <- cropped_rivers %>% fasterize(template)
+river_map <- raster_rivers %>% fasterize(template)
 
 river_map %>%
   writeRaster(file.path(scenario_dir, "rivers.tif"), overwrite = T)
 
 rm(rivers)
 rm(cropped_rivers)
+rm(raster_rivers)
 rm(river_map)
 
 # Step 4. Generate tree map
