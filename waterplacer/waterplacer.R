@@ -20,12 +20,19 @@ function Main::Save()
     return {};
 }
 
+function Main::FillCash(company_id) {
+    if(GSCompany.GetBankBalance(company_id) < 20000000) {
+       GSCompany.ChangeBankBalance(company_id, 1800000000, GSCompany.EXPENSES_OTHER);
+   }
+}
+
 // Load function
 function Main::Load() {}
 
 function Main::Start()
 {
     Sleep(1);
+    company_id = GSCompany.ResolveCompanyID(GSCompany.COMPANY_FIRST);
 
     local x = [",
   paste0(data$x-1, collapse = ','), # reverse these if ottd is ccw
@@ -35,7 +42,36 @@ function Main::Start()
    "];
 
     for(local i = 0; i < x.len(); i++) {
+        FillCash(company_id);
+        local mode = GSCompanyMode(company_id);
         local cur_tile = GSMap.GetTileIndex(x[i], y[i]);
+        local slope = GSTile.GetSlope(cur_tile);
+        switch(slope) {
+          case GSTile.SLOPE_N:
+              GSTile.LowerTile(cur_tile, GSTile.SLOPE_N);
+              break;
+          case GSTile.SLOPE_E:
+              GSTile.LowerTile(cur_tile, GSTile.SLOPE_E);
+              break;
+          case GSTile.SLOPE_W:
+              GSTile.LowerTile(cur_tile, GSTile.SLOPE_W);
+              break;
+          case GSTile.SLOPE_S:
+              GSTile.LowerTile(cur_tile, GSTile.SLOPE_S);
+              break;
+          case GSTile.SLOPE_NWS:
+              GSTile.RaiseTile(cur_tile, GSTile.SLOPE_E);
+              break;
+          case GSTile.SLOPE_ENW:
+              GSTile.RaiseTile(cur_tile, GSTile.SLOPE_S);
+              break;
+          case GSTile.SLOPE_SEN:
+              GSTile.RaiseTile(cur_tile, GSTile.SLOPE_W);
+              break;
+          case GSTile.SLOPE_WSE:
+              GSTile.RaiseTile(cur_tile, GSTile.SLOPE_N);
+              break;
+        }
         if(!(GSTile.IsCoastTile(cur_tile) || GSTile.IsWaterTile(cur_tile))) {
             GSTile.DemolishTile(cur_tile);
             GSMarine.BuildRiver(cur_tile);
@@ -47,3 +83,4 @@ function Main::Start()
 fileconn <- file("~/Documents/OpenTTD/game/waterplacer/main.nut")
 writeLines(out_str, fileconn)
 close(fileconn)
+
